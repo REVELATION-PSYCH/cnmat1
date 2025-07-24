@@ -31,7 +31,8 @@ dependencies:
   flutter:
     sdk: flutter
   introduction_screen: ^3.0.0 
-  carousel_slider: ^4.0.0
+  carousel_slider: ^5.1.1
+  
   shared_preferences: ^2.0.15
   intl: ^0.18.0
   location: ^5.0.0
