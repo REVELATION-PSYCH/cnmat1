@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:lottie/lottie.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:cnmat/screens/LocationSelectionPage.dart';
 
@@ -261,7 +260,7 @@ class _HomePageState extends State<HomePage> {
     String loadingMessage = "Looking for available nurses nearby...";
     String locationName = ""; // Variable to store the location name
 
-    Future<void> _getLocationName(double latitude, double longitude) async {
+    Future<void> getLocationName(double latitude, double longitude) async {
       try {
         // Use geocoding to get the location name from the coordinates
         List<Placemark> placemarks =
@@ -278,7 +277,7 @@ class _HomePageState extends State<HomePage> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            Future<void> _startLoadingSimulation() async {
+            Future<void> startLoadingSimulation() async {
               setState(() {
                 isLoading = true;
               });
@@ -364,7 +363,7 @@ class _HomePageState extends State<HomePage> {
                           selectedLocation = location;
                           isLocationSelected = true;
                         });
-                        await _getLocationName(selectedLocation!.latitude,
+                        await getLocationName(selectedLocation!.latitude,
                             selectedLocation!.longitude);
                       }
                     },
@@ -393,7 +392,7 @@ class _HomePageState extends State<HomePage> {
                         });
                       },
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
               actions: [
@@ -420,7 +419,7 @@ class _HomePageState extends State<HomePage> {
                                 );
                               },
                             );
-                            await _startLoadingSimulation();
+                            await startLoadingSimulation();
                           },
                     child: isLoading
                         ? const SizedBox(
