@@ -3,7 +3,6 @@ import 'package:cnmat/components/my_textfield.dart';
 import 'package:cnmat/screens/login_page.dart';
 import 'package:cnmat/utilities/config.dart';
 import 'package:flutter/material.dart';
-
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
@@ -37,24 +36,33 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    var baseurl = Config.API_URL;
+    var baseurl = Config.API_URL; // e.g., http://172.20.10.7:8085/api/auth
 
     try {
-      var response = await http.post(Uri.parse('$baseurl/register.php'), body: {
-        'password': passwordController.text,
-        'email': emailController.text,
-        'name': nameController.text,
-      });
+      final response = await http.post(
+        Uri.parse('$baseurl/register'), // Match your backend endpoint
+        headers: {"Content-Type": "application/json"},
+        body: convert.jsonEncode({
+          'name': nameController.text.trim(),
+          'email': emailController.text.trim(),
+          'password': passwordController.text.trim(),
+        }),
+      );
+
+      print('Status code: ${response.statusCode}');
+      print('Body: ${response.body}');
 
       if (response.statusCode == 200) {
         var jsonResponse =
             convert.jsonDecode(response.body) as Map<String, dynamic>;
         var status = jsonResponse['status'];
-        var message = jsonResponse['message'];
+        var message = jsonResponse['message'] ?? 'Registration completed';
 
         genericErrorMessage(message);
+
         if (status == 'success') {
           Future.delayed(const Duration(seconds: 2), () {
+            if (!mounted) return;
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -67,7 +75,7 @@ class _RegisterPageState extends State<RegisterPage> {
             'Request failed with status: ${response.statusCode}.');
       }
     } catch (e) {
-      genericErrorMessage('An error occurred. Please try again later.');
+      genericErrorMessage('An error occurred: $e');
     }
   }
 
@@ -104,14 +112,12 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 50),
-                  // Logo Image
                   Image.asset(
                     'assets/images/logo2.png',
                     height: 160,
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 20),
-                  // Email TextField
                   MyTextField(
                     controller: emailController,
                     hintText: 'Email',
@@ -119,15 +125,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     fillColor: Colors.grey[200],
                   ),
                   const SizedBox(height: 20),
-                  // Name TextField
                   MyTextField(
                     controller: nameController,
-                    obscureText: false,
                     hintText: 'Name',
+                    obscureText: false,
                     fillColor: Colors.grey[200],
                   ),
                   const SizedBox(height: 20),
-                  // Password TextField
                   MyTextField(
                     controller: passwordController,
                     hintText: 'Password',
@@ -135,7 +139,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     fillColor: Colors.grey[200],
                   ),
                   const SizedBox(height: 20),
-                  // Confirm Password TextField
                   MyTextField(
                     controller: confirmPasswordController,
                     hintText: 'Confirm Password',
@@ -143,15 +146,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     fillColor: Colors.grey[200],
                   ),
                   const SizedBox(height: 30),
-                  // Sign Up Button
                   MyButton(
-                    onTap: () => registerUser(),
+                    onTap: registerUser,
                     text: 'Sign Up',
                     backgroundColor: Colors.blue,
                     textColor: Colors.white,
                   ),
                   const SizedBox(height: 30),
-                  // Already have an account? Login now
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

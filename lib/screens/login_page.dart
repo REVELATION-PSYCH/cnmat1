@@ -34,40 +34,49 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void mockSignUserIn() async {
-    // Simulate a successful login by directly navigating to the home page
     if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
-      var baseurl = Config.API_URL;
-      var response = await http.post(Uri.parse('$baseurl/login.php'), body: {
-        'email': emailController.text,
-        'password': passwordController.text
-      });
-      if (response.statusCode == 200) {
-        //print(response.body);
-        var jsonResponse =
-            convert.jsonDecode(response.body) as Map<String, dynamic>;
-        var status = jsonResponse['status'];
-        var message = jsonResponse['message'];
+      var baseurl = Config.API_URL; // e.g. http://172.20.10.7:8085/api/auth
 
-        if (status == 'success') {
-          var token = jsonResponse['token'];
-          var profile = jsonResponse['profile'];
-          await saveToken(token);
-          await saveProfileData(profile);
-          Navigator.pushReplacement(
-            // ignore: use_build_context_synchronously
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
+      try {
+        var response = await http.post(
+          Uri.parse('$baseurl/login'),
+          headers: {"Content-Type": "application/json"},
+          body: convert.jsonEncode({
+            'email': emailController.text,
+            'password': passwordController.text,
+          }),
+        );
+        print('Status code: ${response.statusCode}');
+        print('Body: ${response.body}');
+
+        if (response.statusCode == 200) {
+          var jsonResponse =
+              convert.jsonDecode(response.body) as Map<String, dynamic>;
+          var status = jsonResponse['status'];
+          var message = jsonResponse['message'];
+
+          if (status == 'success') {
+            var token = jsonResponse['token'];
+            var profile = jsonResponse['profile'];
+            await saveToken(token);
+            await saveProfileData(profile);
+
+            // Navigate to HomePage
+            if (!mounted) return; // safety check
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          } else {
+            genericErrorMessage(message ?? 'Login failed');
+          }
+        } else {
+          genericErrorMessage(
+              'Request failed with status: ${response.statusCode}');
         }
-        genericErrorMessage('$message.');
-      } else {
-        genericErrorMessage(
-            'Request failed with status: ${response.statusCode}.');
+      } catch (e) {
+        genericErrorMessage('An error occurred: $e');
       }
-      /* Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      ); */
     } else {
       genericErrorMessage('Please enter both email and password');
     }
