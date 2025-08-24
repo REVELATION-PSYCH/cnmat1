@@ -50,29 +50,37 @@ class _LoginPageState extends State<LoginPage> {
         print('Body: ${response.body}');
 
         if (response.statusCode == 200) {
-          var jsonResponse =
-              convert.jsonDecode(response.body) as Map<String, dynamic>;
-          var status = jsonResponse['status'];
-          var message = jsonResponse['message'];
+          try {
+            var jsonResponse = convert.jsonDecode(response.body);
+            var status = jsonResponse['status'];
+            var message = jsonResponse['message'];
 
-          if (status == 'success') {
-            var token = jsonResponse['token'];
-            var profile = jsonResponse['profile'];
-            await saveToken(token);
-            await saveProfileData(profile);
+            if (status == 'success') {
+              var token = jsonResponse['token'];
+              var profile = jsonResponse['profile'];
+              await saveToken(token);
+              await saveProfileData(profile);
 
-            // Navigate to HomePage
-            if (!mounted) return; // safety check
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );
-          } else {
-            genericErrorMessage(message ?? 'Login failed');
+              if (!mounted) return;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            } else {
+              genericErrorMessage(message ?? 'Login failed');
+            }
+          } catch (_) {
+            // fallback: plain text response
+            if (response.body.contains('Login successful')) {
+              if (!mounted) return;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            } else {
+              genericErrorMessage('Unexpected response: ${response.body}');
+            }
           }
-        } else {
-          genericErrorMessage(
-              'Request failed with status: ${response.statusCode}');
         }
       } catch (e) {
         genericErrorMessage('An error occurred: $e');
@@ -142,6 +150,11 @@ class _LoginPageState extends State<LoginPage> {
                   hintText: 'Password',
                   obscureText: true,
                   fillColor: Colors.blue[50],
+                  style: const TextStyle(
+                    color: Colors.black, // darker typed text
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(height: 30),
                 // Sign In Button
